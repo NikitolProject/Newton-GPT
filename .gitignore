@@ -1,0 +1,10 @@
+/target
+/data
+Cargo.lock
+
+discord_gpt_bot
+
+.env
+*.log
+*.bson
+
