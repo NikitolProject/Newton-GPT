@@ -2,7 +2,7 @@
 ![alt text](https://github.com/NikitolProject/Newton-GPT/raw/master/assets/demo.png)
 ---
 ## Introduction
-### This bot implements the basic functionality of a regular ChatGPT (in the form of creating new chats, communicating within them with support for remembering the context, as well as with the ability to change the current model). The management interface is in the terminal, and currently has very limited functionality. The project itself is still under development, and this is only its MVP version.
+### This bot implements the basic functionality of a regular ChatGPT (in the form of creating new chats, chatting in them with support for remembering the context, as well as the ability to change the current model) + the ability to generate images when requested in tracks. The management interface is in the terminal and currently has very limited functionality. The project itself is still under development, and this is only its MVP version.
 ---
 # Installation
 ---
