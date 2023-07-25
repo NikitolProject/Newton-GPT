@@ -2,6 +2,8 @@ pub mod ui;
 pub mod utils;
 pub mod commands;
 
+use url::Url;
+
 use std::{env, sync::{Arc, Mutex}};
 
 use crate::utils::{log::log_to_file, datastorage::{Users, User}};
@@ -14,7 +16,7 @@ use crate::utils::{log::log_to_file, datastorage::{Users, User}};
 use serenity::async_trait;
 // use serenity::model::application::command::Command;
 use serenity::model::application::interaction::{Interaction, InteractionResponseType};
-use serenity::model::channel::Message;
+use serenity::model::channel::{Message, AttachmentType};
 use serenity::model::gateway::Ready;
 use serenity::model::id::GuildId;
 use serenity::prelude::*;
@@ -59,6 +61,63 @@ impl EventHandler for Handler {
         // println!("{:#?}", _new_message);
         log_to_file(&format!("[INFO] - Get new message from thread: {:#?}", _new_message), &self.messages)
             .await.unwrap();
+
+        let validate_send_image = utils::image::image_submission_check(&_new_message.content, &self.messages)
+            .await
+            .unwrap();
+
+        log_to_file(&format!("[INFO] - Check image: {:#?}", validate_send_image), &self.messages)
+            .await.unwrap();
+
+        if validate_send_image.0 {
+            let copied_http_client = Arc::new(&_ctx.http);
+
+            let typing = copied_http_client
+                .start_typing(_new_message.channel_id.as_u64().to_owned())
+                .expect("Error typing");
+
+            let images = utils::image::get_images(&_new_message.content, "1024x1024", &4, &self.messages)
+                .await;
+            
+            typing.stop();
+
+            if images.len() == 1 && !&images[0].starts_with("https://") {
+                 _new_message
+                    .channel_id
+                    .send_message(
+                        &_ctx.http, 
+                        |m| {
+                            m.content(&images[0])
+                        }
+                    ).await.unwrap();
+
+                return
+            }
+
+            _new_message
+                .channel_id
+                .send_message(
+                    &_ctx.http, 
+                    |m| {
+                        m.content(
+                            "Вот, что у меня получилось! Можешь попросить меня ещё что-нибудь нарисовать!"
+                                .to_owned()
+                        );
+
+                        for value in images {
+                            m.add_file(
+                                AttachmentType::Image(
+                                    Url::parse(&value).unwrap()
+                                )
+                            );
+                        };
+                        
+                        m
+                    }
+                ).await.unwrap();
+
+            return
+        }
 
         // if _new_message.mentions.iter().any(|m| m.id == bot_id) 
         //   || (_new_message.referenced_message.is_some() && _new_message.referenced_message.unwrap().author.id == bot_id) {
